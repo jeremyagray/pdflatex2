@@ -130,6 +130,7 @@ SPDX-License-Identifier: `MIT <https://spdx.org/licenses/MIT.html>`_
 pdflatex2, a Python/PDFLaTeX interface.
 
 Copyright (C) 2022 `Jeremy A Gray <gray@flyquackswim.com>`_.
+
 Copyright (C) 2019 Marcelo Belo.
 
 Permission is hereby granted, free of charge, to any person obtaining
