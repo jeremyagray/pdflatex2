@@ -1,6 +1,10 @@
-__version__ = '0.1.0'
+"""pdflatex2 module."""
 
-from pdflatex.pdflatex import PDFLaTeX
-from pdflatex.pdflatex import JINJA2_ENV
-from pdflatex.pdflatex import MODE_BATCH, MODE_ERROR_STOP, MODE_SCROLL, MODE_NON_STOP
+__version__ = "0.1.4"
 
+from .pdflatex import JINJA2_ENV
+from .pdflatex import MODE_BATCH
+from .pdflatex import MODE_ERROR_STOP
+from .pdflatex import MODE_NON_STOP
+from .pdflatex import MODE_SCROLL
+from .pdflatex import PDFLaTeX
