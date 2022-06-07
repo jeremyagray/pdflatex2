@@ -84,8 +84,8 @@ Create PDF from a Jinja template::
 
   import os
   import pdflatex2
-  import jinja2 
-  
+  import jinja2
+
   env = pdflatex.JINJA2_ENV
   env["loader"] = jinja2.FileSystemLoader(os.path.abspath("."))
   env = jinja2.Environment(**env)

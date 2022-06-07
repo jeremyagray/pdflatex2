@@ -1,5 +1,18 @@
+# ******************************************************************************
+#
+# pdflatex2, a Python/PDFLaTeX interface.
+#
+# Copyright 2022 Jeremy A Gray <gray@flyquackswim.com>.  All rights
+# reserved.
+# Copyright 2019 Marcelo Bello.
+#
+# SPDX-License-Identifier: MIT
+#
+# ******************************************************************************
+
 """pdflatex2 module."""
 
+import datetime
 import os
 import shutil
 import subprocess
@@ -30,6 +43,7 @@ class PDFLaTeX:
     """PDFLaTeX interaction."""
 
     def __init__(self, latex_src, job_name: str):
+        """Initialize a ``pdflatex`` interaction."""
         self.latex = latex_src
         self.job_name = job_name
         self.interaction_mode = INTERACTION_MODES[MODE_BATCH]
@@ -40,19 +54,40 @@ class PDFLaTeX:
         self.log = None
 
     @classmethod
-    def from_texfile(cls, filename):
-        prefix = os.path.basename(filename)
-        prefix = os.path.splitext(prefix)[0]
-        with open(filename, "rb") as f:
-            return cls.from_binarystring(f.read(), prefix)
+    def from_binarystring(cls, binstr: str, jobname: str = None):
+        """Instantiate from a binary string.
 
-    @classmethod
-    def from_binarystring(cls, binstr: str, jobname: str):
+        Instantiate from a binary string, usually from a TeX/LaTeX
+        file or Jinja template.
+
+        Parameters
+        ----------
+        cls
+            The ``PDFLaTeX`` class.
+        binstr : str
+            A binary string containing TeX or LaTeX source with which
+            to generate the PDF.
+        jobname : str
+            Job name to pass to ``pdflatex``.  If ``None``, set to
+            milliseconds since the epoch.
+        """
+        if not jobname:
+            jobname = str(int(datetime.datetime.utcnow().timestamp() * 1000))
+
         return cls(binstr, jobname)
 
     @classmethod
+    def from_texfile(cls, filename: str, jobname: str = None):
+        """Instantiate from a TeX file."""
+        prefix = os.path.basename(filename)
+        prefix = os.path.splitext(prefix)[0]
+        with open(filename, "rb") as f:
+            return cls.from_binarystring(f.read(), jobname)
+
+    @classmethod
     def from_jinja_template(cls, jinja2_template, jobname: str = None, **render_kwargs):
-        tex_src = jinja2_template.render(**render_kwargs)
+        """Instantiate from a Jinja template."""
+        tex = jinja2_template.render(**render_kwargs)
         fn = jinja2_template.filename
 
         if fn is None:
@@ -62,11 +97,15 @@ class PDFLaTeX:
                     "PDFLaTeX: if jinja template does not have attribute 'filename' set, "
                     "'jobname' must be provided"
                 )
-        return cls(tex_src, fn)
+        return cls(tex, fn)
 
     def create_pdf(
-        self, keep_pdf_file: bool = False, keep_log_file: bool = False, env: dict = None
+        self,
+        keep_pdf_file: bool = False,
+        keep_log_file: bool = False,
+        env: dict = None,
     ):
+        """Create the PDF."""
         if self.interaction_mode is not None:
             self.add_args({"-interaction-mode": self.interaction_mode})
 
@@ -102,15 +141,18 @@ class PDFLaTeX:
         return self.pdf, self.log, fp
 
     def get_run_args(self):
+        """Get the ``pdflatex`` run-time arguments."""
         a = [k + ("=" + v if v is not None else "") for k, v in self.params.items()]
         a.insert(0, "pdflatex")
         return a
 
     def add_args(self, params: dict):
+        """Add arguments."""
         for k in params:
             self.params[k] = params[k]
 
     def del_args(self, params):
+        """Delete arguments."""
         if isinstance(params, str):
             params = [params]
 
@@ -124,17 +166,21 @@ class PDFLaTeX:
             )
 
     def set_output_directory(self, dir: str = None):
+        """Set the output directory."""
         self.generic_param_set("-output-directory", dir)
 
     def set_jobname(self, jobname: str = None):
+        """Set the ``pdflatex`` job name."""
         self.generic_param_set("-jobname", jobname)
 
     def set_output_format(self, fmt: str = None):
+        """Set the output format."""
         if fmt and fmt not in ["pdf", "dvi"]:
             raise ValueError("PDFLaTeX: Format must be either 'pdf' or 'dvi'.")
-        self.generic_param_set("-output-format", dir)
+        self.generic_param_set("-output-format", fmt)
 
     def generic_param_set(self, param_name, value):
+        """Set a parameter."""
         if value is None:
             if param_name in self.params.keys():
                 del self.params[param_name]
@@ -142,21 +188,27 @@ class PDFLaTeX:
             self.params[param_name] = value
 
     def set_pdf_filename(self, pdf_filename: str = None):
+        """Set PDF file name."""
         self.set_jobname(pdf_filename)
 
     def set_batchmode(self, on: bool = True):
+        """Set batch mode."""
         self.interaction_mode = INTERACTION_MODES[MODE_BATCH] if on else None
 
     def set_nonstopmode(self, on: bool = True):
+        """Set non-stop mode."""
         self.interaction_mode = INTERACTION_MODES[MODE_NON_STOP] if on else None
 
     def set_scrollmode(self, on: bool = True):
+        """Set scroll mode."""
         self.interaction_mode = INTERACTION_MODES[MODE_SCROLL] if on else None
 
     def set_errorstopmode(self, on: bool = True):
+        """Set error stop mode."""
         self.interaction_mode = INTERACTION_MODES[MODE_ERROR_STOP] if on else None
 
     def set_interaction_mode(self, mode: int = None):
+        """Set interaction mode."""
         if mode is None:
             self.interaction_mode = None
         elif 0 <= mode <= 3:
