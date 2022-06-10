@@ -10,24 +10,6 @@
 #
 # ******************************************************************************
 
-# Emacs.
-*~
-.dir-locals.el
-
-# Python.
-*.egg-info
-*.pyc
-.coverage
-.hypothesis/
-.pytest_cache
-.python-version
-.tox
-__pycache__
-build
-commit
-dist/
-docs/_build/
-htmlcov
-
-# Generated files.
-*.html
+recursive-include docs *
+include LICENSE.rst
+include README.rst

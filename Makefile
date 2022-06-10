@@ -1,23 +1,24 @@
-#***********************************************************************
+# ******************************************************************************
 #
-# pccc, the Python Conventional Commit Checker.
+# pdflatex2, a Python/PDFLaTeX interface.
 #
-# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2022 Jeremy A Gray <gray@flyquackswim.com>.  All rights
+# reserved.
+# Copyright 2019 Marcelo Bello.
 #
-# Copyright 2020-2022 Jeremy A Gray <gray@flyquackswim.com>.
+# SPDX-License-Identifier: MIT
 #
-#***********************************************************************
+# ******************************************************************************
 
-python-modules = pccc tests
+python-modules = pdflatex2
 python-files =
 
 .PHONY : test-all
 test-all:
-	pytest -vv --cov pccc --cov tests --cov-report term --cov-report html
+	pytest -vv --cov pdflatex2 --cov-report term --cov-report html
 
 .PHONY : build
-build :
-	cd docs && make html
+build : docs
 	pip install -q build
 	python -m build
 
@@ -25,11 +26,15 @@ build :
 clean :
 	rm -rf build
 	rm -rf dist
-	rm -rf pccc.egg-info
+	rm -rf *.egg-info
 	cd docs && make clean
 
 .PHONY : dist
 dist : clean build
+
+.PHONY : docs
+docs :
+	cd docs && make html
 
 .PHONY : commit
 commit :

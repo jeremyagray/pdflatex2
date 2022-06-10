@@ -10,24 +10,15 @@
 #
 # ******************************************************************************
 
-# Emacs.
-*~
-.dir-locals.el
+[flake8]
 
-# Python.
-*.egg-info
-*.pyc
-.coverage
-.hypothesis/
-.pytest_cache
-.python-version
-.tox
-__pycache__
-build
-commit
-dist/
-docs/_build/
-htmlcov
+extend-ignore = E203, W503
+    __init__.py F401
 
-# Generated files.
-*.html
+exclude =
+    .git,
+    .tox,
+    __pycache__,
+
+max-complexity = 20
+max-line-length = 95

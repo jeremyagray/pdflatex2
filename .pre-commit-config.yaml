@@ -1,0 +1,36 @@
+# ******************************************************************************
+#
+# pdflatex2, a Python/PDFLaTeX interface.
+#
+# Copyright 2022 Jeremy A Gray <gray@flyquackswim.com>.  All rights
+# reserved.
+# Copyright 2019 Marcelo Bello.
+#
+# SPDX-License-Identifier: MIT
+#
+# ******************************************************************************
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.9.2
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
