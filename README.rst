@@ -1,4 +1,3 @@
-=========
 pdflatex2
 =========
 
@@ -13,7 +12,7 @@ A Python/PDFLaTeX interface.
       :alt: Documentation Status
 
 Description
-===========
+-----------
 
 This is a simple module to execute ``pdflatex`` in an easy and clean way.
 The ``pdflatex`` command line utility by default generates a lot of output
@@ -23,7 +22,7 @@ pdflatex2 is a port of the original `pdflatex
 <https://pypi.org/pdflatex>`_, version 0.1.3, by Marcelo Bello.
 
 Installation
-============
+------------
 
 Install pdflatex2 with::
 
@@ -36,10 +35,12 @@ source, change the appropriate lines in ``pyproject.toml``, and
 rebuild.
 
 Usage
-=====
+-----
+
+Usage section.
 
 Instantiation
--------------
+^^^^^^^^^^^^^
 
 The PDFLaTeX class can be instantiated directly or through helpers::
 
@@ -51,7 +52,7 @@ where ``jobname`` is any string that can be used to create a valid
 filename.
 
 Examples
---------
+^^^^^^^^
 
 In all the following examples, no files are left on the file system,
 unless requested with the ``keep_pdf_file`` and ``keep_log_file``
@@ -123,7 +124,7 @@ See the source and `documentation
 <https://pdflatex2.readthedocs.io/en/latest/>`_ for more information.
 
 Copyright and License
-=====================
+---------------------
 
 SPDX-License-Identifier: `MIT <https://spdx.org/licenses/MIT.html>`_
 
@@ -153,6 +154,6 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Author
-======
+------
 
 `Jeremy A Gray <gray@flyquackswim.com>`_
