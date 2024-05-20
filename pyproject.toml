@@ -2,8 +2,9 @@
 #
 # pdflatex2, a Python/PDFLaTeX interface.
 #
-# Copyright 2022 Jeremy A Gray <gray@flyquackswim.com>.  All rights
-# reserved.
+# Copyright 2022-2024 Jeremy A Gray <gray@flyquackswim.com>.  All
+# rights reserved.
+#
 # Copyright 2019 Marcelo Bello.
 #
 # SPDX-License-Identifier: MIT
@@ -25,10 +26,26 @@ build-backend = "setuptools.build_meta"
 
 [tool]
 
+[tool.bandit.assert_used]
+
+exclude_dirs = [
+  ".git",
+  ".pytest_cache",
+  ".tox",
+  ".venv",
+  "dist",
+  "docs",
+  "htmlcov",
+  "pdflatex2.egg-info",
+]
+
+skips = [
+  "**/test_*.py",
+]
+
 [tool.black]
 
 line-length = 88
-target-version = ['py38']
 include = '\.pyi?$'
 exclude = '''
 
@@ -108,11 +125,9 @@ classifiers = [
   "Development Status :: 3 - Alpha",
   "License :: OSI Approved :: MIT",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.6",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
 ]
 
 packages = [
@@ -127,11 +142,11 @@ python = ">=3.10.1,<4.0"
 
 Sphinx = ">=7"
 black = ">=24"
-factory-boy = ">=3"
 flake8 = ">=7"
 flake8-docstrings = ">=1"
-isort = ">=5"
 hypothesis = ">=6"
+isort = ">=5"
+jinja2 = ">=3"
 pccc = ">=0"
 pre-commit = ">=3"
 pyfakefs = ">=5"

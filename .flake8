@@ -2,8 +2,9 @@
 #
 # pdflatex2, a Python/PDFLaTeX interface.
 #
-# Copyright 2022 Jeremy A Gray <gray@flyquackswim.com>.  All rights
-# reserved.
+# Copyright 2022-2024 Jeremy A Gray <gray@flyquackswim.com>.  All
+# rights reserved.
+#
 # Copyright 2019 Marcelo Bello.
 #
 # SPDX-License-Identifier: MIT
@@ -12,8 +13,12 @@
 
 [flake8]
 
-extend-ignore = E203, W503
-    __init__.py F401
+extend-ignore =
+    E203,
+    W503
+
+per-file-ignores =
+    __init__.py: F401
 
 exclude =
     .git,
@@ -21,4 +26,4 @@ exclude =
     __pycache__,
 
 max-complexity = 20
-max-line-length = 95
+max-line-length = 88
