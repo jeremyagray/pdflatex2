@@ -2,216 +2,243 @@
 #
 # pdflatex2, a Python/PDFLaTeX interface.
 #
-# Copyright 2022 Jeremy A Gray <gray@flyquackswim.com>.  All rights
-# reserved.
+# Copyright 2022-2024 Jeremy A Gray <gray@flyquackswim.com>.  All
+# rights reserved.
+#
 # Copyright 2019 Marcelo Bello.
 #
 # SPDX-License-Identifier: MIT
 #
 # ******************************************************************************
 
-"""pdflatex2 module."""
+"""PDFLaTeX class and utilities."""
 
-import datetime
-import os
-import shutil
-import subprocess
+import subprocess  # nosec B404
 import tempfile
-from subprocess import PIPE
+import uuid
+from pathlib import Path
 
-MODE_BATCH = 0
-MODE_NON_STOP = 1
-MODE_SCROLL = 2
-MODE_ERROR_STOP = 3
-INTERACTION_MODES = ["batchmode", "nonstopmode", "scrollmode", "errorstopmode"]
+_INTERACTION_MODES = (
+    "batchmode",
+    "nonstopmode",
+    "scrollmode",
+    "errorstopmode",
+)
 
-JINJA2_ENV = {
-    "block_start_string": "\\BLOCK{",
-    "block_end_string": "}",
-    "variable_start_string": "\\VAR{",
-    "variable_end_string": "}",
-    "comment_start_string": "\\#{",
-    "comment_end_string": "}",
-    "line_statement_prefix": "%%",
-    "line_comment_prefix": "%#",
-    "trim_blocks": True,
-    "autoescape": False,
-}
+_CONTROLLED_PDFLATEX_OPTIONS = (  # dead: disable
+    "interaction",
+    "job-name",
+    "output-directory",
+)
+
+_INTERACTIVE_PDFLATEX_OPTIONS = (  # dead: disable
+    "help",
+    "version",
+)
+
+_PDFLATEX_INT_OPTIONS = (  # dead: disable
+    "buf-size",
+    "error-line",
+    "extra-mem-bot",
+    "extra-mem-top",
+    "font-max",
+    "font-mem-size",
+    "half-error-line",
+    "hash-extra",
+    "include-directory",
+    "main-memory",
+    "max-in-open",
+    "max-print-line",
+    "max-strings",
+    "nest-size",
+    "param-size",
+    "pool-free",
+    "pool-size",
+    "save-size",
+    "stack-size",
+    "string-vacancies",
+    "synctex",
+    "trie-size",
+)
+
+_PDFLATEX_STRING_OPTIONS = (  # dead: disable
+    "alias",
+    "aux-directory",
+    "job-time",
+    "output-format",
+    "record-package-usages",
+    "tcx",
+    "trace",
+    "undump",
+)
+
+_PDFLATEX_BINARY_OPTIONS = (  # dead: disable
+    "c-style-errors",
+    "disable-8bit-chars",
+    "disable-installer",
+    "disable-write18",
+    "dont-parse-first-line",
+    "draftmode",
+    "enable-8bit-chars",
+    "enable-enctex",
+    "enable-etex",
+    "enable-installer",
+    "enable-mltex",
+    "enable-write18",
+    "halt-on-error",
+    "initialize",
+    "no-c-style-errors",
+    "parse-first-line",
+    "quiet",
+    "recorder",
+    "restrict-write18",
+    "src-specials",
+    "time-statistics",
+    "verbose",
+)
 
 
 class PDFLaTeX:
     """PDFLaTeX interaction."""
 
-    def __init__(self, latex_src, job_name: str):
-        """Initialize a ``pdflatex`` interaction."""
-        self.latex = latex_src
-        self.job_name = job_name
-        self.interaction_mode = INTERACTION_MODES[MODE_BATCH]
-        self.dir = None
-        self.pdf_filename = None
-        self.params = dict()
+    def __init__(self, latex, mode="batchmode"):
+        """Initialize a ``pdflatex`` interaction.
+
+        Parameters
+        ----------
+        latex : str
+            String containing LaTeX code to be compiled into a PDF.
+        """
+        self.latex = latex
+        self.interaction = mode
+        self.job = uuid.uuid4()
         self.pdf = None
+        self.aux = None
         self.log = None
 
-    @classmethod
-    def from_binarystring(cls, binstr: str, jobname: str = None):
-        """Instantiate from a binary string.
+    @property
+    def interaction(self):
+        """Get the interaction mode."""
+        return self._interaction
 
-        Instantiate from a binary string, usually from a TeX/LaTeX
-        file or Jinja template.
+    @interaction.setter
+    def interaction(self, mode):
+        """Set the interaction mode."""
+        if mode in _INTERACTION_MODES:
+            self._interaction = mode
+        else:
+            raise ValueError(
+                f"invalid interaction mode '{mode}'; "
+                f"choose from valid modes:  '{", ".join(_INTERACTION_MODES)}'"
+            )
+
+        return self._interaction
+
+    @interaction.deleter
+    def interaction(self):
+        """Delete the interaction mode."""
+        raise AttributeError(
+            "interaction mode required; set to ``batchmode`` for default behavior"
+        )
+
+    @classmethod
+    def from_string(cls, latex, mode="batchmode"):
+        """Instantiate from a string.
+
+        Instantiate from a string, like from a TeX/LaTeX file.
 
         Parameters
         ----------
         cls
             The ``PDFLaTeX`` class.
-        binstr : str
-            A binary string containing TeX or LaTeX source with which
-            to generate the PDF.
-        jobname : str
-            Job name to pass to ``pdflatex``.  If ``None``, set to
-            milliseconds since the epoch.
+        latex : str
+            A string containing TeX or LaTeX source with which to
+            generate the PDF.
         """
-        if not jobname:
-            jobname = str(int(datetime.datetime.utcnow().timestamp() * 1000))
-
-        return cls(binstr, jobname)
+        return cls(latex, mode)
 
     @classmethod
-    def from_texfile(cls, filename: str, jobname: str = None):
-        """Instantiate from a TeX file."""
-        prefix = os.path.basename(filename)
-        prefix = os.path.splitext(prefix)[0]
-        with open(filename, "rb") as f:
-            return cls.from_binarystring(f.read(), jobname)
+    def from_tex_file(cls, fn, mode="batchmode"):  # dead: disable
+        """Instantiate from a TeX/LaTeX file.
+
+        Parameters
+        ----------
+        cls
+            The ``PDFLaTeX`` class.
+        fn : str
+            A TeX/LaTeX file.
+        """
+        with open(fn, "r") as f:
+            return cls.from_string(f.read(), mode)
 
     @classmethod
-    def from_jinja_template(cls, jinja2_template, jobname: str = None, **render_kwargs):
-        """Instantiate from a Jinja template."""
-        tex = jinja2_template.render(**render_kwargs)
-        fn = jinja2_template.filename
+    def from_jinja_template(cls, template, mode="batchmode", **kwargs):  # dead: disable
+        """Instantiate from a Jinja template.
 
-        if fn is None:
-            fn = jobname
-            if not fn:
-                raise ValueError(
-                    "PDFLaTeX: if jinja template does not have attribute 'filename' set, "
-                    "'jobname' must be provided"
-                )
-        return cls(tex, fn)
+        Parameters
+        ----------
+        cls
+            The ``PDFLaTeX`` class.
+        template
+            A Jinja2 template instance.
+        """
+        return cls.from_string(template.render(**kwargs), mode)
 
-    def create_pdf(
-        self,
-        keep_pdf_file: bool = False,
-        keep_log_file: bool = False,
-        env: dict = None,
-    ):
-        """Create the PDF."""
-        if self.interaction_mode is not None:
-            self.add_args({"-interaction-mode": self.interaction_mode})
+    def compile(self):  # dead: disable
+        """Compile the PDF with pdflatex.
 
-        dir = self.params.get("-output-directory")
-        filename = self.params.get("-jobname")
-
-        if filename is None:
-            filename = self.job_name
-        if dir is None:
-            dir = ""
-
+        Compile the PDF with pdflatex.  Create a temporary directory
+        for the compilation process.  Place the LaTeX to be compiled
+        in a temporary file within that directory, compile it
+        (multiple times if necessary), and then retrieve the compiled
+        PDF, log, and auxiliary files from the temporary directory.
+        """
+        # Create tempoary storage.
         with tempfile.TemporaryDirectory() as td:
-            self.set_output_directory(td)
-            self.set_jobname("file")
+            # Set paths.
+            td = Path(td)
+            texfile = td / f"{self.job}.tex"
+            pdffile = td / f"{self.job}.pdf"
+            logfile = td / f"{self.job}.log"
+            auxfile = td / f"{self.job}.aux"
 
-            args = self.get_run_args()
+            # Process instance data into pdflatex command options.
+            args = (
+                "pdflatex",
+                f"-interaction={self.interaction}",
+                f"-output-directory={str(td)}",
+                f"-job-name={self.job}",
+                str(texfile),
+            )
+
+            # Write temporary LaTeX file.
+            with open(texfile, "w") as f:
+                f.write(self.latex)
+
             fp = subprocess.run(
-                args, input=self.latex, env=env, timeout=15, stdout=PIPE, stderr=PIPE
-            )
-            with open(os.path.join(td, "file.pdf"), "rb") as f:
-                self.pdf = f.read()
-            with open(os.path.join(td, "file.log"), "rb") as f:
-                self.log = f.read()
-            if keep_log_file:
-                shutil.move(
-                    os.path.join(td, "file.log"), os.path.join(dir, filename + ".log")
-                )
-            if keep_pdf_file:
-                shutil.move(
-                    os.path.join(td, "file.pdf"), os.path.join(dir, filename + ".pdf")
-                )
-
-        return self.pdf, self.log, fp
-
-    def get_run_args(self):
-        """Get the ``pdflatex`` run-time arguments."""
-        a = [k + ("=" + v if v is not None else "") for k, v in self.params.items()]
-        a.insert(0, "pdflatex")
-        return a
-
-    def add_args(self, params: dict):
-        """Add arguments."""
-        for k in params:
-            self.params[k] = params[k]
-
-    def del_args(self, params):
-        """Delete arguments."""
-        if isinstance(params, str):
-            params = [params]
-
-        if isinstance(params, dict) or isinstance(params, list):
-            for k in params:
-                if k in self.params.keys():
-                    del self.params[k]
-        else:
-            raise ValueError(
-                "PDFLaTeX: del_cmd_params: parameter must be str, dict or list."
+                args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=False,  # nosec B603
             )
 
-    def set_output_directory(self, dir: str = None):
-        """Set the output directory."""
-        self.generic_param_set("-output-directory", dir)
+            # Add status information from the pdflatex run.
+            self.return_status = int(fp.returncode)
+            self.stdout = str(fp.stdout)
+            self.stderr = str(fp.stderr)
 
-    def set_jobname(self, jobname: str = None):
-        """Set the ``pdflatex`` job name."""
-        self.generic_param_set("-jobname", jobname)
+            def _maybe_retrieve_file(attr, fn, mode="r"):
+                """Retrieve file contents, if present."""
+                # Retrieve file contents.
+                try:
+                    with open(fn, mode) as f:
+                        setattr(self, attr, f.read())
 
-    def set_output_format(self, fmt: str = None):
-        """Set the output format."""
-        if fmt and fmt not in ["pdf", "dvi"]:
-            raise ValueError("PDFLaTeX: Format must be either 'pdf' or 'dvi'.")
-        self.generic_param_set("-output-format", fmt)
+                except FileNotFoundError:
+                    pass
 
-    def generic_param_set(self, param_name, value):
-        """Set a parameter."""
-        if value is None:
-            if param_name in self.params.keys():
-                del self.params[param_name]
-        else:
-            self.params[param_name] = value
+            _maybe_retrieve_file("pdf", pdffile, mode="rb")
+            _maybe_retrieve_file("log", logfile)
+            _maybe_retrieve_file("aux", auxfile)
 
-    def set_pdf_filename(self, pdf_filename: str = None):
-        """Set PDF file name."""
-        self.set_jobname(pdf_filename)
-
-    def set_batchmode(self, on: bool = True):
-        """Set batch mode."""
-        self.interaction_mode = INTERACTION_MODES[MODE_BATCH] if on else None
-
-    def set_nonstopmode(self, on: bool = True):
-        """Set non-stop mode."""
-        self.interaction_mode = INTERACTION_MODES[MODE_NON_STOP] if on else None
-
-    def set_scrollmode(self, on: bool = True):
-        """Set scroll mode."""
-        self.interaction_mode = INTERACTION_MODES[MODE_SCROLL] if on else None
-
-    def set_errorstopmode(self, on: bool = True):
-        """Set error stop mode."""
-        self.interaction_mode = INTERACTION_MODES[MODE_ERROR_STOP] if on else None
-
-    def set_interaction_mode(self, mode: int = None):
-        """Set interaction mode."""
-        if mode is None:
-            self.interaction_mode = None
-        elif 0 <= mode <= 3:
-            self.interaction_mode = INTERACTION_MODES[mode]
-        else:
-            raise ValueError("PDFLaTeX: Invalid interaction mode!")
+        return self
