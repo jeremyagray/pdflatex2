@@ -112,7 +112,7 @@ authors = [
 ]
 description = "a Python/PDFLaTeX interface"
 name = "pdflatex2"
-version = "0.1.4"
+version = "0.1.5"
 license = "MIT"
 maintainers = [
   "Jeremy A Gray <gray@flyquackswim.com>",

@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "pdflatex2"
 copyright = "2022-2024, Jeremy A Gray; 2019 Marcelo Belo"
 author = "Jeremy A Gray, Marcelo Belo"
-release = "0.1.4"
+release = "0.1.5"
 
 extensions = [
     "sphinx.ext.autodoc",

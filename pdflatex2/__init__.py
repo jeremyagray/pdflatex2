@@ -13,6 +13,6 @@
 
 """pdflatex2 module."""
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 from .pdflatex import PDFLaTeX
