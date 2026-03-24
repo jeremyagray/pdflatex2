@@ -2,7 +2,7 @@
 #
 # pdflatex2, a Python/PDFLaTeX interface.
 #
-# Copyright 2022-2024 Jeremy A Gray <gray@flyquackswim.com>.  All
+# Copyright 2022-2026 Jeremy A Gray <gray@flyquackswim.com>.  All
 # rights reserved.
 #
 # Copyright 2019 Marcelo Bello.
@@ -110,13 +110,17 @@ class PDFLaTeX:
         Parameters
         ----------
         latex : str
-            String containing LaTeX code to be compiled into a PDF.
+            A string containing TeX or LaTeX source with which to
+            generate the PDF.
+        mode : str
+            Set the mode for pdflatex.
+        runs : int
+            Number of pdflatex runs to attempt.
+
         """
         self.latex = latex
         self.interaction = mode
-        if runs > _max_runs:
-            warnings.warn(f"maximum allowed pdflatex runs is {_max_runs}")
-        self.runs = min(runs, _max_runs)
+        self.runs = runs
         self.job = uuid.uuid4()
         self.pdf = None
         self.aux = None
@@ -135,7 +139,7 @@ class PDFLaTeX:
         else:
             raise ValueError(
                 f"invalid interaction mode '{mode}'; "
-                f"choose from valid modes:  '{", ".join(_INTERACTION_MODES)}'"
+                f"choose from valid modes:  '{', '.join(_INTERACTION_MODES)}'"
             )
 
         return self._interaction
@@ -146,6 +150,24 @@ class PDFLaTeX:
         raise AttributeError(
             "interaction mode required; set to ``batchmode`` for default behavior"
         )
+
+    @property
+    def runs(self):
+        """Get the number of pdflatex runs."""
+        return self._runs
+
+    @runs.setter
+    def runs(self, num):
+        """Set the number of pdflatex runs."""
+        if num > _max_runs:
+            warnings.warn(
+                f"maximum allowed pdflatex runs is {_max_runs}",
+                stacklevel=2,
+            )
+
+        self._runs = min(num, _max_runs)
+
+        return self._runs
 
     @classmethod
     def from_string(cls, latex, mode="batchmode", **kwargs):
@@ -160,6 +182,11 @@ class PDFLaTeX:
         latex : str
             A string containing TeX or LaTeX source with which to
             generate the PDF.
+        mode : str
+            Set the mode for pdflatex.
+        kwargs : dict
+            Options to be passed to the ``PDFLaTeX`` class.
+
         """
         return cls(latex, mode, **kwargs)
 
@@ -173,6 +200,11 @@ class PDFLaTeX:
             The ``PDFLaTeX`` class.
         fn : str
             A TeX/LaTeX file.
+        mode : str
+            Set the mode for pdflatex.
+        kwargs : dict
+            Options to be passed to the ``PDFLaTeX`` class.
+
         """
         with open(fn, "r") as f:
             return cls.from_string(f.read(), mode, **kwargs)
@@ -187,6 +219,11 @@ class PDFLaTeX:
             The ``PDFLaTeX`` class.
         template
             A Jinja2 template instance.
+        mode : str
+            Set the mode for pdflatex.
+        kwargs : dict
+            Options to be passed to the ``PDFLaTeX`` class.
+
         """
         return cls.from_string(template.render(**kwargs), mode)
 
@@ -212,7 +249,7 @@ class PDFLaTeX:
             args = (
                 "pdflatex",
                 f"-interaction={self.interaction}",
-                f"-output-directory={str(td)}",
+                f"-output-directory={td!s}",
                 f"-job-name={self.job}",
                 str(texfile),
             )
@@ -222,11 +259,11 @@ class PDFLaTeX:
                 f.write(self.latex)
 
             for _ in range(self.runs):
-                fp = subprocess.run(
+                fp = subprocess.run(  # noqa: S603
                     args,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    shell=False,  # nosec B603
+                    shell=False,
                 )
 
             # Add status information from the pdflatex run.

@@ -2,7 +2,7 @@
 #
 # pdflatex2, a Python/PDFLaTeX interface.
 #
-# Copyright 2022-2024 Jeremy A Gray <gray@flyquackswim.com>.  All
+# Copyright 2022-2026 Jeremy A Gray <gray@flyquackswim.com>.  All
 # rights reserved.
 #
 # Copyright 2019 Marcelo Bello.
@@ -106,7 +106,7 @@ def test_pdflatex_instantiate_from_string():
     doc = PDFLaTeX.from_string(latex_txt)
     doc.compile()
 
-    assert int(doc.return_status) == int(0)
+    assert int(doc.return_status) == 0
 
 
 def test_pdflatex_instantiate_from_file(fs):
@@ -155,4 +155,4 @@ The key's value is \VAR{ key }.
     doc.compile()
 
     assert "blarney" in doc.latex
-    assert int(doc.return_status) == int(0)
+    assert int(doc.return_status) == 0

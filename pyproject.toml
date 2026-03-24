@@ -2,7 +2,7 @@
 #
 # pdflatex2, a Python/PDFLaTeX interface.
 #
-# Copyright 2022-2024 Jeremy A Gray <gray@flyquackswim.com>.  All
+# Copyright 2022-2026 Jeremy A Gray <gray@flyquackswim.com>.  All
 # rights reserved.
 #
 # Copyright 2019 Marcelo Bello.
@@ -13,60 +13,10 @@
 
 [build-system]
 
-# Setuptools.
-requires = [
-  "setuptools",
-  "wheel",
-]
-build-backend = "setuptools.build_meta"
-
-# Poetry.
-# requires = ["poetry_core>=1.0.0"]
-# build-backend = "poetry.core.masonry.api"
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool]
-
-[tool.bandit.assert_used]
-
-exclude_dirs = [
-  ".git",
-  ".pytest_cache",
-  ".tox",
-  ".venv",
-  "dist",
-  "docs",
-  "htmlcov",
-  "pdflatex2.egg-info",
-]
-
-skips = [
-  "**/test_*.py",
-]
-
-[tool.black]
-
-line-length = 88
-include = '\.pyi?$'
-exclude = '''
-
-(
-  /(
-    \.git
-    | \.pytest_cache
-    | __pycache__
-    | htmlcov
-  )/
-)
-'''
-
-[tool.isort]
-
-ensure_newline_before_comments = true
-force_single_line = true
-include_trailing_comma = true
-line_length = 88
-multi_line_output = 3
-use_parentheses = true
 
 [tool.pccc]
 
@@ -125,9 +75,9 @@ classifiers = [
   "Development Status :: 3 - Alpha",
   "License :: OSI Approved :: MIT",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 
 packages = [
@@ -136,22 +86,20 @@ packages = [
 
 [tool.poetry.dependencies]
 
-python = ">=3.10.1,<4.0"
+jinja2 = ">=3"
+python = ">=3.12.1,<4.0"
 
 [tool.poetry.group.dev.dependencies]
 
-Sphinx = ">=7"
-black = ">=24"
-flake8 = ">=7"
-flake8-docstrings = ">=1"
+doc8 = ">=2"
 hypothesis = ">=6"
-isort = ">=5"
-jinja2 = ">=3"
 pccc = ">=0"
 pre-commit = ">=3"
 pyfakefs = ">=5"
 pytest = ">=8"
 pytest-cov = ">=5"
+ruff = ">=0"
+sphinx = ">=7"
 tox = ">=4"
 
 [tool.poetry.scripts]
@@ -163,3 +111,26 @@ tox = ">=4"
 "Repository" = "https://github.com/jeremyagray/pdflatex2"
 
 [tool.pytest.ini_options]
+
+[tool.ruff.lint]
+
+select = [
+  "B",
+  "C90",
+  "D",
+  "E",
+  "F",
+  "RUF",
+  "S",
+  "W",
+]
+
+ignore = [
+  "D203",
+  "D213",
+]
+
+[tool.ruff.lint.per-file-ignores]
+
+"__init__.py" = [ "F401" ]
+"test_*.py" = [ "S101" ]
