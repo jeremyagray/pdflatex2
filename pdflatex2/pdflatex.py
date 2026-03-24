@@ -16,7 +16,10 @@
 import subprocess  # nosec B404
 import tempfile
 import uuid
+import warnings
 from pathlib import Path
+
+_max_runs = 5
 
 _INTERACTION_MODES = (
     "batchmode",
@@ -101,7 +104,7 @@ _PDFLATEX_BINARY_OPTIONS = (  # dead: disable
 class PDFLaTeX:
     """PDFLaTeX interaction."""
 
-    def __init__(self, latex, mode="batchmode"):
+    def __init__(self, latex, mode="batchmode", runs=1):
         """Initialize a ``pdflatex`` interaction.
 
         Parameters
@@ -111,6 +114,9 @@ class PDFLaTeX:
         """
         self.latex = latex
         self.interaction = mode
+        if runs > _max_runs:
+            warnings.warn(f"maximum allowed pdflatex runs is {_max_runs}")
+        self.runs = min(runs, _max_runs)
         self.job = uuid.uuid4()
         self.pdf = None
         self.aux = None
@@ -142,7 +148,7 @@ class PDFLaTeX:
         )
 
     @classmethod
-    def from_string(cls, latex, mode="batchmode"):
+    def from_string(cls, latex, mode="batchmode", **kwargs):
         """Instantiate from a string.
 
         Instantiate from a string, like from a TeX/LaTeX file.
@@ -155,10 +161,10 @@ class PDFLaTeX:
             A string containing TeX or LaTeX source with which to
             generate the PDF.
         """
-        return cls(latex, mode)
+        return cls(latex, mode, **kwargs)
 
     @classmethod
-    def from_tex_file(cls, fn, mode="batchmode"):  # dead: disable
+    def from_tex_file(cls, fn, mode="batchmode", **kwargs):  # dead: disable
         """Instantiate from a TeX/LaTeX file.
 
         Parameters
@@ -169,7 +175,7 @@ class PDFLaTeX:
             A TeX/LaTeX file.
         """
         with open(fn, "r") as f:
-            return cls.from_string(f.read(), mode)
+            return cls.from_string(f.read(), mode, **kwargs)
 
     @classmethod
     def from_jinja_template(cls, template, mode="batchmode", **kwargs):  # dead: disable
@@ -215,12 +221,13 @@ class PDFLaTeX:
             with open(texfile, "w") as f:
                 f.write(self.latex)
 
-            fp = subprocess.run(
-                args,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=False,  # nosec B603
-            )
+            for _ in range(self.runs):
+                fp = subprocess.run(
+                    args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=False,  # nosec B603
+                )
 
             # Add status information from the pdflatex run.
             self.return_status = int(fp.returncode)
