@@ -2,7 +2,7 @@
 #
 # pdflatex2, a Python/PDFLaTeX interface.
 #
-# Copyright 2022-2024 Jeremy A Gray <gray@flyquackswim.com>.  All rights
+# Copyright 2022-2026 Jeremy A Gray <gray@flyquackswim.com>.  All rights
 # reserved.
 # Copyright 2019 Marcelo Bello.
 #
@@ -13,7 +13,7 @@
 ---
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: check-ast
@@ -26,18 +26,18 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 26.3.1
     hooks:
       - id: black
         language_version: python3
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+    rev: 7.3.0
     hooks:
       - id: flake8
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 8.0.1
     hooks:
       - id: isort
 
@@ -47,7 +47,7 @@ repos:
       - id: pydocstyle
 
   - repo: https://github.com/pycqa/bandit
-    rev: 1.7.8
+    rev: 1.9.4
     hooks:
       - id: bandit
         args: ["--config", "pyproject.toml"]
@@ -59,7 +59,7 @@ repos:
       - id: yesqa
 
   - repo: https://github.com/asottile/dead
-    rev: v1.5.2
+    rev: v2.1.0
     hooks:
       - id: dead
         args: ["--tests", "test_.*\\.py", "--exclude", "docs/conf.py"]
