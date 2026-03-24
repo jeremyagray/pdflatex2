@@ -16,8 +16,6 @@
 import uuid
 
 import pytest
-from jinja2 import DictLoader
-from jinja2 import Environment
 
 from pdflatex2 import PDFLaTeX
 
@@ -75,6 +73,26 @@ def test_pdflatex_compile_use_all_interactions():
         assert int(doc.return_status) == 0
 
 
+def test_pdflatex_sets_default_runs():
+    """Should set the default number of runs."""
+    pdf = PDFLaTeX("")
+
+    assert pdf.runs == 1
+
+
+def test_pdflatex_refuses_to_exceed_max_runs():
+    """Should not exceed the maximum number of runs."""
+    pdf = PDFLaTeX("", runs=7)
+
+    assert pdf.runs == 5
+
+
+def test_pdflatex_warns_on_excessive_runs():
+    """Should warn on excessive runs."""
+    with pytest.warns(UserWarning, match="maximum allowed pdflatex runs is 5"):
+        PDFLaTeX("", runs=7)
+
+
 def test_pdflatex_compile_captures_stdout():
     """Should capture STDOUT when compiling a PDF."""
     # Default.
@@ -121,38 +139,3 @@ def test_pdflatex_instantiate_from_file(fs):
     # Compilation fails due to the fake file system; check initialized
     # object.
     assert "This is a test." in doc.latex
-
-
-def test_pdflatex_instantiate_from_jinja():
-    """Should instantiate from a rendered Jinja2 template."""
-    j2 = Environment(
-        loader=DictLoader(
-            {
-                "template.tex": r"""\documentclass[10pt]{letter}
-
-\pagestyle{empty}
-
-\begin{document}
-The key's value is \VAR{ key }.
-\end{document}
-""",
-            }
-        ),
-        block_start_string=r"\BLOCK{",
-        block_end_string="}",
-        variable_start_string=r"\VAR{",
-        variable_end_string="}",
-        comment_start_string=r"\#{",
-        comment_end_string="}",
-        line_statement_prefix="%%",
-        line_comment_prefix="%#",
-        trim_blocks=True,
-        autoescape=True,
-    )
-
-    template = j2.get_template("template.tex")
-    doc = PDFLaTeX.from_jinja_template(template, key="blarney")
-    doc.compile()
-
-    assert "blarney" in doc.latex
-    assert int(doc.return_status) == 0

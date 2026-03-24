@@ -57,59 +57,40 @@ Instantiation
 
 The PDFLaTeX class can be instantiated directly::
 
-  >>> from pdflatex2 import PDFLaTeX
-  >>> doc = PDFLaTeX(src)
-  >>> doc.compile()
+  >>> from pdflatex2 import PDFLaTeX  # doctest:  +SKIP
+  >>> doc = PDFLaTeX("\\documentclass[10pt]{letter}\n\\begin{document}\nThis is a test.\n\\end{document}")  # doctest:  +SKIP
+  >>> doc.compile()  # doctest:  +SKIP
 
 or through helpers::
 
-  >>> doc = PDFLaTeX.from_string(src)
-  >>> doc = PDFLaTeX.from_tex_file(filename)
-  >>> doc = PDFLaTeX.from_jinja_template(template, **kwargs)
+  >>> doc = PDFLaTeX.from_string(src)  # doctest:  +SKIP
+  >>> doc = PDFLaTeX.from_tex_file(filename)  # doctest:  +SKIP
 
 Examples
 --------
 
 Output files are created in a temporary directory and are available
-after compilation on the ``PDFLaTeX`` object..
+after compilation on the ``PDFLaTeX`` object.
 
 Create a PDF file from a string::
 
-  >>> from pdflatex2 import PDFLaTeX
-  >>> with open("file.tex", "r") as f:
-  ...     pdf = PDFLaTeX.from_string(f.read())
-  >>> pdf.compile()
+  >>> from pdflatex2 import PDFLaTeX  # doctest:  +SKIP
+  >>> with open("file.tex", "r") as f:  # doctest:  +SKIP
+  ...     pdf = PDFLaTeX.from_string(f.read())  # doctest:  +SKIP
+  >>> pdf.compile()  # doctest:  +SKIP
+
+The string may come from any source (computation, file, Jinja template
+rendering, etc.).
 
 The method ``compile()`` stores all information on the ``PDFLaTeX``
 instance.
 
-Create a PDF from a file::
+Create a PDF from a TeX or LaTeX file::
 
   >>> from pdflatex2 import PDFLaTeX
-  >>> pdf = PDFLaTeX.from_tex_file("file.tex")
-  >>> pdf.compile()
+  >>> pdf = PDFLaTeX.from_tex_file("file.tex")  # doctest:  +SKIP
+  >>> pdf.compile()  # doctest:  +SKIP
 
-Create PDF from a Jinja template::
-
-  >>> import jinja2
-  >>> from pdflatex2 import PDFLaTeX
-  >>> from pathlib import Path
-  >>> j2 = jinja2.Environment(
-  ...     loader=jinja2.FileSystemLoader(Path(".")),
-  ...     block_start_string=r"\BLOCK{",
-  ...     block_end_string="}",
-  ...     variable_start_string=r"\VAR{",
-  ...     variable_end_string="}",
-  ...     comment_start_string=r"\#{",
-  ...     comment_end_string="}",
-  ...     line_statement_prefix="%%",
-  ...     line_comment_prefix="%#",
-  ...     trim_blocks=True,
-  ...     autoescape=True,
-  ... )
-  >>> template = j2.get_template("template.tex")
-  >>> pdf = PDFLaTeX.from_jinja_template(template, key="value")
-  >>> pdf.compile()
 
 Copyright and License
 =====================
@@ -118,7 +99,7 @@ SPDX-License-Identifier: `MIT <https://spdx.org/licenses/MIT.html>`_
 
 pdflatex2, a Python/PDFLaTeX interface.
 
-Copyright (C) 2022-2024 `Jeremy A Gray <gray@flyquackswim.com>`_.
+Copyright (C) 2022-2026 `Jeremy A Gray <gray@flyquackswim.com>`_.
 
 Copyright (C) 2019 Marcelo Belo.
 

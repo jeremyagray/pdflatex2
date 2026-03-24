@@ -209,24 +209,6 @@ class PDFLaTeX:
         with open(fn, "r") as f:
             return cls.from_string(f.read(), mode, **kwargs)
 
-    @classmethod
-    def from_jinja_template(cls, template, mode="batchmode", **kwargs):  # dead: disable
-        """Instantiate from a Jinja template.
-
-        Parameters
-        ----------
-        cls
-            The ``PDFLaTeX`` class.
-        template
-            A Jinja2 template instance.
-        mode : str
-            Set the mode for pdflatex.
-        kwargs : dict
-            Options to be passed to the ``PDFLaTeX`` class.
-
-        """
-        return cls.from_string(template.render(**kwargs), mode)
-
     def compile(self):  # dead: disable
         """Compile the PDF with pdflatex.
 
