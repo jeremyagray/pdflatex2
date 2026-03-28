@@ -18,6 +18,15 @@ build-backend = "poetry.core.masonry.api"
 
 [tool]
 
+[tool.doc8]
+
+ignore-path = [
+  "*.egg-info",
+  ".tox",
+  ".venv",
+  "**/_build",
+]
+
 [tool.pccc]
 
 header_length = 50

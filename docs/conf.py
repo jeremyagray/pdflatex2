@@ -19,7 +19,7 @@ import sys
 sys.path.insert(0, os.path.abspath(".."))
 
 project = "pdflatex2"
-copyright = "2022-2024, Jeremy A Gray; 2019 Marcelo Belo"
+copyright = "2022-2026, Jeremy A Gray; 2019 Marcelo Belo"
 author = "Jeremy A Gray, Marcelo Belo"
 release = "0.1.6"
 
@@ -38,6 +38,5 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
 ]
-html_static_path = ["_static"]
 
 html_theme = "alabaster"
